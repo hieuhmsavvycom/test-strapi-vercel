@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "todo",
+  "info": {
+    "singularName": "todos",
+    "pluralName": "todo",
+    "displayName": "Todos"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "text",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "start_date": {
+      "type": "date"
+    },
+    "end_date": {
+      "type": "date"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "to do",
+        "in progress",
+        "done",
+        "failed"
+      ]
+    },
+    "bookmark": {
+      "type": "boolean"
+    }
+  }
+}
