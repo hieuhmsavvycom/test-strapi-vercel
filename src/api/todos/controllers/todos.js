@@ -10,6 +10,14 @@ module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
   async find(ctx) {
     const { user } = ctx.state;
     const { query } = ctx;
+
+    if (query.search) {
+      query.title = {
+        $contains: query.search,
+      };
+    }
+
+    delete query.search;
     const result = await strapi.service("api::todos.todos").find({
       filters: {
         ...query,
@@ -49,7 +57,7 @@ module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
     const { user } = ctx.state;
     const { data: todo } = ctx.request.body;
     const result = await strapi.service("api::todos.todos").create({
-      data: { ...todo, userId: user.id },
+      data: { ...todo, userId: user.id, start_date: new Date().toISOString() },
     });
     return result;
   },
