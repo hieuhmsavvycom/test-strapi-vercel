@@ -11,8 +11,10 @@ module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
     const { user } = ctx.state;
     const { query } = ctx;
     const result = await strapi.service("api::todos.todos").find({
-      ...query,
-      userId: user.id,
+      filters: {
+        ...query,
+        userId: user.id,
+      },
     });
     return result;
   },
@@ -20,10 +22,27 @@ module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
   async findOne(ctx) {
     const { user } = ctx.state;
     const { id } = ctx.params;
-    const result = await strapi.service("api::todos.todos").findOne(id, {
-      userId: user.id,
+    const result = await strapi.service("api::todos.todos").find({
+      filters: {
+        id,
+        userId: user.id,
+      },
     });
-    return result;
+
+    if (result.results.length > 0) {
+      return result.results[0];
+    } else {
+      ctx.response.status = 404;
+      return {
+        data: null,
+        error: {
+          status: 404,
+          name: "NotFoundError",
+          message: "Not Found",
+          details: {},
+        },
+      };
+    }
   },
 
   async create(ctx) {
@@ -39,24 +58,59 @@ module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
     const { user } = ctx.state;
     const { id } = ctx.params;
     const { data: todo } = ctx.request.body;
-    const checkTodo = await strapi.service("api::todos.todos").findOne(id, {
-      userId: user.id,
+    const checkTodo = await strapi.service("api::todos.todos").find({
+      filters: {
+        id,
+        userId: user.id,
+      },
     });
 
-    if (!checkTodo) {
+    if (checkTodo.results.length === 0) {
       ctx.response.status = 404;
-      return;
+      return {
+        data: null,
+        error: {
+          status: 404,
+          name: "NotFoundError",
+          message: "Not Found",
+          details: {},
+        },
+      };
     }
 
-    const result = await strapi.service("api::todos.todos").update(id, todo);
+    const result = await strapi
+      .service("api::todos.todos")
+      .update(id, { data: todo });
     return result;
   },
 
   async delete(ctx) {
     const { user } = ctx.state;
     const { id } = ctx.params;
+    const checkTodo = await strapi.service("api::todos.todos").find({
+      filters: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (checkTodo.results.length === 0) {
+      ctx.response.status = 404;
+      return {
+        data: null,
+        error: {
+          status: 404,
+          name: "NotFoundError",
+          message: "Not Found",
+          details: {},
+        },
+      };
+    }
+
     const result = await strapi.service("api::todos.todos").delete(id, {
-      userId: user.id,
+      filters: {
+        userId: user.id,
+      },
     });
     return result;
   },
