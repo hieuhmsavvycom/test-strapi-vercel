@@ -5,11 +5,13 @@
  */
 
 const { createCoreController } = require("@strapi/strapi").factories;
+const { cloneDeep } = require("lodash");
 
 module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
   async find(ctx) {
     const { user } = ctx.state;
     const { query } = ctx;
+    console.log(query);
 
     if (query.search) {
       query.title = {
@@ -17,12 +19,32 @@ module.exports = createCoreController("api::todos.todos", ({ strapi }) => ({
       };
     }
 
+    let sort = {};
+
+    if (query.sort) {
+      if (typeof query.sort === "object") {
+        sort = cloneDeep(query.sort);
+      } else {
+        sort = [query.sort];
+      }
+    }
+
+    let pagination = {};
+
+    if (query.pagination) {
+      pagination = cloneDeep(query.pagination);
+    }
+
+    delete query.pagination;
+    delete query.sort;
     delete query.search;
     const result = await strapi.service("api::todos.todos").find({
       filters: {
         ...query,
         userId: user.id,
       },
+      sort,
+      pagination,
     });
     return result;
   },
